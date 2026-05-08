@@ -50,6 +50,7 @@ class User < ApplicationRecord
     enable_safe_mode
     enable_desktop_mode
     disable_post_tooltips
+    enable_sensitive_tags
     _unused_enable_recommended_posts
     _unused_opt_out_tracking
     _unused_no_flagging
@@ -615,6 +616,17 @@ class User < ApplicationRecord
     # @return [Array<String>] The list of blacklist rules. Each line in the blacklist is a rule.
     def blacklist_rules
       blacklisted_tags.to_s.downcase.gsub(/(rating:\w)\w+/, '\1').lines.map(&:strip).compact_blank
+    end
+
+    # @return [Array<String>] The list of locked blacklist rules. These are non-removable rules that are always
+    #   active when the user has sensitive tags disabled.
+    def locked_blacklist_rules
+      sensitive_tags = Danbooru.config.sensitive_tags
+      if sensitive_tags.present? && !enable_sensitive_tags?
+        sensitive_tags
+      else
+        []
+      end
     end
   end
 

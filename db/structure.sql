@@ -7156,6 +7156,7 @@ ALTER TABLE ONLY public.user_upgrades
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260405000000'),
 ('20260323172054'),
 ('20260323172053'),
 ('20260323172052'),
@@ -7505,3 +7506,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20100205162521'),
 ('20100204214746'),
 ('20100204211522');
+

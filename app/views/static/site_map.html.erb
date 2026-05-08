@@ -150,9 +150,6 @@
           <li><%= link_to("IP Bans", ip_bans_path) %></li>
         <% end %>
 
-        <% if policy(EmailAddress).index? %>
-          <li><%= link_to("Email Addresses", emails_path) %></li>
-        <% end %>
 
         <% if policy(UserNameChangeRequest).index? %>
           <li><%= link_to("Name Changes", user_name_change_requests_path) %></li>
