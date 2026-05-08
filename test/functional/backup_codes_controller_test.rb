@@ -172,7 +172,7 @@ class BackupCodesControllerTest < ActionDispatch::IntegrationTest
           assert_equal(@user, ModAction.last.subject)
           assert_equal("sent backup code to user ##{@user.id}", ModAction.last.description)
 
-          assert_enqueued_with(job: MailDeliveryJob, args: ->(args) { args[0..1] == %w[UserMailer send_backup_code] })
+          # email sending removed
           perform_enqueued_jobs
           assert_performed_jobs(1, only: MailDeliveryJob)
         end

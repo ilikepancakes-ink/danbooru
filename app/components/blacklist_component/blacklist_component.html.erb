@@ -2,7 +2,7 @@
   id="blacklist-box"
   class="mb-4 card-outlined max-w-full <%= inline ? "inline-flex sm:flex-col sm:w-full thin-x-scrollbar inline-blacklist" : "sidebar-blacklist" %>"
   x-data="{ blacklist: new Danbooru.Blacklist($root) }"
-  x-init="blacklist.initialize(<%= rules.to_json %>)"
+  x-init="blacklist.initialize(<%= rules.to_json %>, <%= locked_rules.to_json %>)"
   x-show="blacklist.visible"
   x-cloak>
   <%= tag.div class: "flex items-center gap-1 p-2", "x-bind:class": (inline ? "{ 'sm:border-b': !blacklist.collapsed }" : "{ 'border-b': !blacklist.collapsed }") do %>
@@ -59,9 +59,11 @@
            x-data="{ rule: blacklist.rules[<%= i %>] }"
            x-bind:data-visible="rule.visible.toString()"
            x-bind:data-enabled="rule.enabled.toString()"
+           x-bind:data-locked="rule.locked.toString()"
            x-show="rule.visible">
-        <input type="checkbox" class="toggle-switch" x-model="rule.enabled">
+        <input type="checkbox" class="toggle-switch" x-model="rule.enabled" x-bind:disabled="rule.locked" x-bind:class="{ 'opacity-50': rule.locked }">
         <%= link_to rule, posts_path(tags: rule), title: rule, class: "truncate", tabindex: "-1", "x-bind:class": "{ 'inactive-link': !rule.enabled }", "x-on:click.prevent": "rule.toggle()" %>
+        <span x-show="rule.locked" class="text-gray-500 fineprint shrink-0" title="This tag is locked because sensitive tags are disabled. Enable 'Show sensitive tags' in settings to unlock.">🔒</span>
         <span class="whitespace-nowrap post-count" x-text="Alpine.raw(rule.posts).map(post => post.post.dataset.id).size"></span>
       </div>
     <% end %>

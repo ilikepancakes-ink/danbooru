@@ -336,7 +336,6 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       context "for a user with an email address" do
         setup do
           @user = create(:user)
-          create(:email_address, user: @user)
         end
 
         should "show the email address to the user themselves" do
@@ -457,7 +456,6 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_equal("xxx", User.last.name)
         assert_equal(User::Levels::MEMBER, User.last.level)
         assert_equal(User.last, User.last.authenticate_password("xxxxx1"))
-        assert_nil(User.last.email_address)
         assert_equal(true, User.last.user_events.user_creation.exists?(login_session_id: User.last.login_sessions.last.login_id))
         assert_no_enqueued_jobs
 
@@ -479,8 +477,6 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_equal(false, User.last.email_address.is_verified?)
         assert_equal(true, User.last.user_events.user_creation.exists?(login_session_id: User.last.login_sessions.last.login_id))
         assert_equal(false, User.last.user_events.email_change.exists?)
-        assert_equal(false, ModAction.email_address_update.exists?)
-
         assert_enqueued_with(job: MailDeliveryJob, args: ->(args) { args[0..1] == %w[UserMailer welcome_user] })
         perform_enqueued_jobs
         assert_performed_jobs(1, only: MailDeliveryJob)

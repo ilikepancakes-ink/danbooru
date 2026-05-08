@@ -128,7 +128,6 @@ class User < ApplicationRecord
 
   before_save :recalculate_upload_points, if: :level_changed?
   before_create :promote_to_owner_if_first_user
-  after_create :send_welcome_email
   after_create_commit :login_new_user
 
   has_many :artist_versions, foreign_key: :updater_id
@@ -157,7 +156,6 @@ class User < ApplicationRecord
   has_many :purchased_upgrades, class_name: "UserUpgrade", foreign_key: :purchaser_id, dependent: :destroy
   has_many :user_events, dependent: :destroy
   has_one :active_ban, -> { active }, class_name: "Ban"
-  has_one :email_address, dependent: :destroy
   has_many :api_keys, dependent: :destroy
   has_many :note_versions, foreign_key: "updater_id"
   has_many :dmails, -> { order("dmails.id desc") }, foreign_key: "owner_id"
@@ -178,7 +176,6 @@ class User < ApplicationRecord
   has_many :login_sessions, dependent: :destroy
   belongs_to :inviter, class_name: "User", optional: true
 
-  accepts_nested_attributes_for :email_address, reject_if: :all_blank, allow_destroy: true
 
   scope :admins, -> { where(level: Levels::ADMIN) }
   scope :banned, -> { bit_prefs_match(:is_banned, true) }
@@ -213,7 +210,7 @@ class User < ApplicationRecord
           users
         else
           past_name_matches(name, current_user:)
-        end
+
       end
 
       # Find all users that have ever used this name, past or present.
@@ -231,8 +228,8 @@ class User < ApplicationRecord
         where(id: UserNameChangeRequest.visible(current_user).where_iequals(:original_name, normalize_name(name)).select(:user_id))
       end
 
-      def find_by_name_or_email(name_or_email)
-        find_by_name(name_or_email) || find_by_email(name_or_email)
+      def find_by_name(name)
+        name_matches(name).first
       end
 
       def find_by_name(name)
@@ -290,7 +287,7 @@ class User < ApplicationRecord
 
     def request_password_reset!(request)
       with_lock do
-        if can_receive_email?(require_verified_email: false)
+
           UserMailer.with_request(request).password_reset(self).deliver_later
         end
 
@@ -362,15 +359,6 @@ class User < ApplicationRecord
       user_events.authorized.exists?(["ip_addr <<= ?", ip_addr.subnet.to_s])
     end
 
-    # Send the user a login verification email when they try to login from a new location.
-    #
-    # @param request [ActionDispatch::Request] The HTTP request of the login attempt that triggered this email.
-    # @param user_event [UserEvent] The user event that triggered this email.
-    def send_login_verification_email!(request, user_event)
-      if can_receive_email?(require_verified_email: false)
-        UserMailer.with_request(request).login_verification(user_event).deliver_later
-      end
-    end
   end
 
   concerning :SockpuppetMethods do
@@ -482,8 +470,6 @@ class User < ApplicationRecord
       with_lock do
         if backup_codes.blank?
           errors.add(:base, "doesn't have backup codes")
-        elsif email_address.blank?
-          errors.add(:base, "doesn't have an email address")
         else
           UserMailer.send_backup_code(self).deliver_later
           ModAction.log("sent backup code to user ##{id}", :backup_code_send, subject: self, user: current_user)
@@ -609,19 +595,6 @@ class User < ApplicationRecord
     end
   end
 
-  concerning :EmailMethods do
-    class_methods do
-      # @param email_address [String] The user's email address.
-      def find_by_email(email_address)
-        normalized_address = Danbooru::EmailAddress.canonicalize(email_address).to_s
-        User.joins(:email_address).find_by(email_address: { normalized_address: normalized_address })
-      end
-    end
-
-    def can_receive_email?(require_verified_email: true)
-      email_address.present? && email_address.is_deliverable? && (email_address.is_verified? || !require_verified_email)
-    end
-  end
 
   concerning :BlacklistMethods do
     class_methods do
@@ -849,11 +822,6 @@ class User < ApplicationRecord
   end
 
   concerning :SignupMethods do
-    def send_welcome_email
-      if request.present? && can_receive_email?(require_verified_email: false)
-        UserMailer.with_request(request).welcome_user(self).deliver_later
-      end
-    end
 
     def login_new_user
       if request.present?

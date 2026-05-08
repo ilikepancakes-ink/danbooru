@@ -49,33 +49,6 @@
           </tr>
         <% end %>
 
-        <% if policy(user.email_address).show? %>
-          <tr class="user-email-address">
-            <th>Email Address</th>
-            <td>
-              <% if user.email_address.present? %>
-                <%= user.email_address.address %>
-
-                <% if user == current_user %>
-                  (<%= link_to "edit", edit_user_email_path(user) %>)
-                <% end %>
-
-                <% if user.email_address.is_verified? %>
-                  <%= checkmark_icon(class: "user-verified-email-icon", title: "Verified email") %>
-                <% elsif user == current_user %>
-                  <%= link_to verify_user_email_path(user) do %>
-                    <%= exclamation_icon(class: "user-unverified-email-icon", title: "Unverified email. Click here to verify your email.") %>
-                  <% end %>
-                <% else %>
-                  <%= exclamation_icon(class: "user-unverified-email-icon", title: "Unverified email") %>
-                <% end %>
-              <% else %>
-                <em>none</em>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-
         <% if user.inviter %>
           <tr>
             <th>Promoter</th>

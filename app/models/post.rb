@@ -1952,6 +1952,11 @@ class Post < ApplicationRecord
     CurrentUser.safe_mode? && (rating != "g" || Danbooru.config.safe_mode_restricted_tags.any? { |tag| tag.in?(tag_array) })
   end
 
+  def sensitiveblocked?
+    sensitive_tags = Danbooru.config.sensitive_tags
+    sensitive_tags.present? && !CurrentUser.user.enable_sensitive_tags? && sensitive_tags.any? { |tag| tag.in?(tag_array) }
+  end
+
   def levelblocked?(user = CurrentUser.user)
     # !user.is_gold? && RESTRICTED_TAGS.any? { |tag| has_tag?(tag) }
     user.id != uploader_id && !user.is_gold? && tag_string.match?(RESTRICTED_TAGS_REGEX)
@@ -1965,7 +1970,7 @@ class Post < ApplicationRecord
   end
 
   def visible?(user = CurrentUser.user)
-    !safeblocked? && !levelblocked?(user) && !banblocked?(user)
+    !safeblocked? && !sensitiveblocked? && !levelblocked?(user) && !banblocked?(user)
   end
 
   def reload(options = nil)

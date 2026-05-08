@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Dmail < ApplicationRecord
-  attr_accessor :creator_ip_addr, :disable_email_notifications
+  attr_accessor :creator_ip_addr
 
   # defines :dtext_body
   dtext_attribute :body, media_embeds: { max_embeds: 5, max_large_emojis: 5, max_small_emojis: 100, max_video_size: 1.megabyte, sfw_only: true }
@@ -19,7 +19,6 @@ class Dmail < ApplicationRecord
   before_create :autoreport_spam
   after_destroy :update_unread_dmail_count
   after_save :update_unread_dmail_count
-  after_commit :send_email, on: :create
 
   deletable
 
@@ -147,12 +146,6 @@ class Dmail < ApplicationRecord
 
   def quoted_body
     "[quote]\n#{from.pretty_name} said:\n\n#{body}\n[/quote]\n\n"
-  end
-
-  def send_email
-    if is_recipient? && !is_deleted? && to.receive_email_notifications? && !disable_email_notifications
-      UserMailer.with(headers: { "X-Danbooru-Dmail": Routes.dmail_url(self) }).dmail_notice(self).deliver_later
-    end
   end
 
   def is_automated?

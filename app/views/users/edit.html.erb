@@ -14,28 +14,11 @@
               <p><%= link_to "Change your name", change_name_user_path(@user) %></p>
             </div>
 
-            <div class="input">
-              <label>Email</label>
-              <p>
-                <% if @user.email_address.present? %>
-                  <%= @user.email_address.address %>
-
-                  <% if @user.email_address.is_verified %>
-                    (<%= link_to "Change email", edit_user_email_path(@user) %>)
-                  <% else %>
-                    (<%= link_to "Change email", edit_user_email_path(@user) %> | <%= link_to "Verify email", verify_user_email_path(@user) %>)
-                  <% end %>
-                <% else %>
-                  <%= link_to "Add email", edit_user_email_path(@user) %>
-                <% end %>
-              </p>
-            </div>
-
             <%= f.input :theme, collection: User.themes.keys, include_blank: false, hint: "The site's colorscheme (light mode or dark mode)." %>
             <%= f.input :enable_safe_mode, as: :boolean, wrapper: "stacked-toggle-switch", label: "Safe mode", hint: "Show only safe images. Hide sensitive, questionable and explicit images." %>
+            <%= f.input :enable_sensitive_tags, as: :boolean, wrapper: "stacked-toggle-switch", label: "Show sensitive content", hint: "When turned off, sensitive tags are locked in your blacklist so posts with those tags are hidden. When turned on, sensitive content is shown normally." %>
             <%= f.input :per_page, label: "Posts per page", hint: "Number of thumbnails per page (max: #{PostSets::Post::MAX_PER_PAGE})", input_html: { min: 1, max: PostSets::Post::MAX_PER_PAGE } %>
             <%= f.input :default_image_size, hint: "Show full original images or resized #{Danbooru.config.large_image_width}px width samples.", label: "Default image width", collection: [["850px", "large"], ["original", "original"]], include_blank: false %>
-            <%= f.input :receive_email_notifications, as: :boolean, wrapper: "stacked-toggle-switch", hint: "Receive an email when you receive a new dmail." %>
             <%= f.input :time_zone, include_blank: false, hint: "The timezone to use for timestamps." %>
             <%= f.input :comment_threshold, hint: "Comments at or below this score will be hidden by default.", input_html: { min: -100, max: 5 } %>
             <%= f.input :blacklisted_tags, hint: "Posts with these tags will be hidden. Put each tag on a separate line. <a href='/wiki_pages/help:blacklists'>View help.</a>".html_safe, :input_html => { :data => {:autocomplete => "tag-query"}} %>

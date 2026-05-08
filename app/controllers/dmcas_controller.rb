@@ -24,8 +24,6 @@ class DmcasController < ApplicationController
       Signature: #{@dmca[:signature]}
     EOS
 
-    UserMailer.with_request(request, dmca: @dmca).dmca_complaint(to: Danbooru.config.dmca_email).deliver_now
-    UserMailer.with_request(request, dmca: @dmca).dmca_complaint(to: @dmca[:email]).deliver_now unless Danbooru::EmailAddress.new(@dmca[:email]).undeliverable?
   end
 
   def template

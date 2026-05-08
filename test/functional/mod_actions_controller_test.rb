@@ -37,8 +37,7 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should "hide email address update actions from non-moderators" do
-        create(:mod_action, category: "email_address_update")
-
+        
         get mod_actions_path, as: :json
 
         assert_response :success

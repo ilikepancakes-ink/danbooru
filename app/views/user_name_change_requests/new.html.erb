@@ -12,7 +12,7 @@
 
       <% if CurrentUser.user != @change_request.user %>
         <p>You are changing <%= link_to_user @change_request.user %>'s name. If they don't know their new name and don't
-        have a valid email address, they will be unable to login.</p>
+        they will be unable to login.</p>
 
         <p>Don't change a user's name unless it breaks the site rules.</p>
       <% end %>

@@ -2,7 +2,7 @@
 
 # A component that displays a user's blacklist rules, and that allows toggling them on and off.
 class BlacklistComponent < ApplicationComponent
-  attr_reader :user, :inline, :rules
+  attr_reader :user, :inline, :rules, :locked_rules
 
   delegate :link_to_wiki, :chevron_down_icon, :chevron_right_icon, to: :helpers
 
@@ -13,5 +13,6 @@ class BlacklistComponent < ApplicationComponent
     @user = user
     @inline = inline
     @rules = user.blacklist_rules
+    @locked_rules = user.locked_blacklist_rules
   end
 end

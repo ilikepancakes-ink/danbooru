@@ -23,18 +23,14 @@ class PasswordResetsController < ApplicationController
     @user = authorize User.find_signed!(params.dig(:user, :signed_id), purpose: :password_reset), policy_class: PasswordResetPolicy
   end
 
-  # Send the password reset email.
+  # Send the password reset request.
   def create
-    name_or_email = params.dig(:user, :name)
-    @user = authorize User.find_by_name_or_email(name_or_email), policy_class: PasswordResetPolicy
+    name = params.dig(:user, :name)
+    @user = authorize User.find_by_name(name), policy_class: PasswordResetPolicy
 
     @user&.request_password_reset!(request)
 
-    if Danbooru::EmailAddress.is_valid?(name_or_email)
-      flash[:notice] = "Check your email. You will be sent a password reset link if an account with this email exists"
-    else
-      flash[:notice] = "Check your email. You will be sent a password reset link if this account has an email address"
-    end
+    flash[:notice] = "Password reset link has been generated"
 
     redirect_to password_reset_path
   end

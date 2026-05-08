@@ -95,34 +95,9 @@ module Danbooru
       CurrentUser.request&.base_url.presence || "http://localhost:#{ENV["DANBOORU_PORT"] || 3000}"
     end
 
-    # The domain name to use for email addresses.
-    def email_domain
-      Danbooru::URL.parse!(Danbooru.config.canonical_url).host
-    end
-
-    # The email address of the admin user. This email will be publicly displayed on the contact page.
-    def contact_email
-      "webmaster@#{email_domain}"
-    end
-
     # The email address where DMCA complaints should be sent.
     def dmca_email
-      "dmca@#{email_domain}"
-    end
-
-    # The email address to use for Dmail notifications.
-    def notification_email
-      "notifications@#{email_domain}"
-    end
-
-    # The email address to use for password reset and email verification emails.
-    def account_security_email
-      "security@#{email_domain}"
-    end
-
-    # The email address to use for new user signup emails.
-    def welcome_user_email
-      "welcome@#{email_domain}"
+      "dmca@example.com"
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -440,6 +415,13 @@ module Danbooru
 
     # Tags that are only visible to Gold+ users.
     def restricted_tags
+      []
+    end
+
+    # Tags that are sensitive and hidden from users who have disabled sensitive tags in their settings.
+    # When a user has `enable_sensitive_tags` disabled, posts containing any of these tags will be
+    # excluded from search results and hidden from view.
+    def sensitive_tags
       []
     end
 

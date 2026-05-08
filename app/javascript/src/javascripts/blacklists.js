@@ -11,11 +11,12 @@ class Blacklist {
   }
 
   // @param {Array<String>} rules - The list of blacklist rules.
-  initialize(rules) {
+  // @param {Array<String>} lockedRules - The list of blacklist rules that are locked (cannot be toggled off).
+  initialize(rules, lockedRules = []) {
     // Attach the blacklist instance to the root DOM element for access with `$("#blacklist-box").get(0).blacklist`
     this.root.blacklist = this;
 
-    this.rules = rules.map(rule => new Rule(this, rule));
+    this.rules = rules.map(rule => new Rule(this, rule, lockedRules.includes(rule)));
     this.posts = $(".post-preview, .image-container, #c-comments .post, .mod-queue-preview.post-preview").toArray().map(post => new Post(post, this));
     this.apply();
     this.cleanupStorage();
@@ -39,7 +40,11 @@ class Blacklist {
       this.collapsed = value;
     }
 
-    this.visibleRules.forEach(rule => { rule.enabled = Boolean(value) });
+    this.visibleRules.forEach(rule => {
+      if (!rule.locked) {
+        rule.enabled = Boolean(value);
+      }
+    });
     this.posts.forEach(post => post.update());
   }
 
@@ -182,9 +187,11 @@ class Post {
 class Rule {
   // @param {Blacklist} blacklist - The blacklist that this rule belongs to.
   // @param {String} string - The rule string.
-  constructor(blacklist, string) {
+  // @param {Boolean} locked - Whether this rule is locked (cannot be toggled off).
+  constructor(blacklist, string, locked = false) {
     this.blacklist = blacklist;
     this.string = string;
+    this.locked = locked;
     this.tags = splitWords(string);
     this.require = [];
     this.exclude = [];
@@ -212,10 +219,14 @@ class Rule {
   }
 
   get enabled() {
+    // Locked rules are always enabled
+    if (this.locked) return true;
     return JSON.parse(localStorage.getItem(`blacklist.enabled:${this.string}`)) ?? true;
   }
 
   set enabled(value) {
+    // Locked rules cannot be changed
+    if (this.locked) return;
     localStorage.setItem(`blacklist.enabled:${this.string}`, JSON.stringify(value));
     this.posts.forEach(post => post.update());
   }
@@ -230,6 +241,8 @@ class Rule {
   }
 
   toggle() {
+    // Locked rules cannot be toggled
+    if (this.locked) return;
     this.enabled = !this.enabled;
   }
 

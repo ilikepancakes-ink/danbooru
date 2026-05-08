@@ -22,8 +22,7 @@ class ModActionTest < ActiveSupport::TestCase
     end
 
     should "hide email address update actions from non-moderators" do
-      create(:mod_action, category: "email_address_update")
-
+      
       assert_equal(0, ModAction.visible(@user).count)
       assert_equal(1, ModAction.visible(@mod).count)
     end

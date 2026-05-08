@@ -13,7 +13,6 @@ require "active_job/railtie"
 require "active_record/railtie"
 # require "active_storage/engine"
 require "action_controller/railtie"
-require "action_mailer/railtie"
 # require "action_mailbox/engine"
 # require "action_text/engine"
 require "action_view/railtie"
@@ -71,7 +70,7 @@ module Danbooru
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    config.autoload_paths += %W[#{config.root}/app/presenters #{config.root}/app/logical/concerns #{config.root}/app/logical #{config.root}/app/mailers]
+    config.autoload_paths += %W[#{config.root}/app/presenters #{config.root}/app/logical/concerns #{config.root}/app/logical]
     config.time_zone = "Eastern Time (US & Canada)"
     config.active_model.i18n_customize_full_message = true
 
@@ -80,18 +79,10 @@ module Danbooru
     # request param containing the word 'password' etc.
     #
     # https://guides.rubyonrails.org/configuring.html#config-filter-parameters
-    config.filter_parameters += [:password, :api_key, :secret, :ip_addr, :address, :email_verification_key, :signed_id] if !Rails.env.local?
+    config.filter_parameters += [:password, :api_key, :secret, :ip_addr, :signed_id] if !Rails.env.local?
 
     raise "Danbooru.config.secret_key_base not configured" if Danbooru.config.secret_key_base.blank?
     config.secret_key_base = Danbooru.config.secret_key_base
-
-    # https://guides.rubyonrails.org/action_mailer_basics.html#intercepting-and-observing-emails
-    # app/logical/email_delivery_logger.rb
-    config.action_mailer.interceptors = ["EmailDeliveryLogger"]
-
-    # https://guides.rubyonrails.org/configuring.html#config-action-mailer-delivery-job
-    # app/jobs/mail_delivery_job.rb
-    config.action_mailer.delivery_job = "MailDeliveryJob"
 
     logger           = ActiveSupport::Logger.new($stderr)
     config.logger    = ActiveSupport::TaggedLogging.new(logger)

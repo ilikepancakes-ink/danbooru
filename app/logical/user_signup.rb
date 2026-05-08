@@ -24,7 +24,6 @@ class UserSignup
       name: params[:user][:name],
       password: params[:user][:password],
       password_confirmation: params[:user][:password_confirmation],
-      email_address_attributes: { address: params.dig(:user, :email_address, :address) },
     )
   end
 

@@ -6,12 +6,10 @@
     <div class="card mt-8 p-4 max-w-480px mx-auto flex flex-col items-center">
       <h1 class="pb-4">Reset Password</h1>
 
-      <p class="w-full">Enter your username or email address to be emailed a link to reset your password.</p>
-
-      <p class="w-full">If your account doesn't have a working email address, then you can't reset your password.</p>
+      <p class="w-full">Enter your username to reset your password.</p>
 
       <%= edit_form_for(:user, url: password_reset_path, action: :post, html: { class: "w-full stacked-form stacked-hints", "data-validate-form": "true" }) do |f| %>
-        <%= f.input :name, label: "Name or Email", input_html: { "data-autocomplete": "user" } %>
+        <%= f.input :name, label: "Name", input_html: { "data-autocomplete": "user" } %>
         <%= captcha_tag class: "mb-4", action: :password_reset %>
         <%= f.submit "Reset password", class: "button-primary", disabled: true %>
       <% end %>

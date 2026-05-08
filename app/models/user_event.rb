@@ -12,7 +12,7 @@ class UserEvent < ApplicationRecord
   # include failed login attempts, password reset requests, or other events that may not have been performed by the user.
   AUTHORIZED_EVENTS = %i[
     login login_verification reauthenticate logout user_creation user_deletion user_undeletion
-    password_reset password_change email_change totp_enable totp_update totp_disable
+    password_reset password_change totp_enable totp_update totp_disable
     totp_login totp_reauthenticate backup_code_generate backup_code_login backup_code_reauthenticate
     api_key_create api_key_update api_key_delete
   ]
@@ -35,8 +35,8 @@ class UserEvent < ApplicationRecord
   enum :category, {
     login: 0,                             # The user successfully logged in. Only used for users without 2FA enabled.
     login_pending_verification: 10,       # The user entered the correct password on the login page, but logged in from a new
-                                          # location. Only used for users with a valid email but without 2FA enabled.
-    login_verification: 15,               # The user clicked the link in the email sent to verify their new login location.
+                                          # location. Only used for users without 2FA enabled.
+    login_verification: 15,
     reauthenticate: 25,                   # The user entered the correct password on the confirm password page. Only used for users without 2FA enabled.
     failed_login: 50,                     # The user entered an incorrect password on the login page.
     failed_reauthenticate: 75,            # The user entered an incorrect password on the confirm password page.
@@ -44,10 +44,9 @@ class UserEvent < ApplicationRecord
     user_creation: 200,
     user_deletion: 300,
     user_undeletion: 310,
-    password_reset_request: 400,          # The user requested a password reset email.
-    password_reset: 450,                  # The user changed their password after requesting a password reset email.
+    password_reset_request: 400,
+    password_reset: 450,
     password_change: 500,                 # The user changed their password.
-    email_change: 600,
     totp_enable: 700,                     # The user enabled 2FA.
     totp_update: 710,                     # The user changed their 2FA secret.
     totp_disable: 720,                    # The user disabled 2FA.

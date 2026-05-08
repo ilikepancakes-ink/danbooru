@@ -222,10 +222,20 @@ class PostQuery
 
   # Implicit metatags are metatags added by the user's account settings. rating:g,s is implicit under safe mode.
   def implicit_metatags
-    return [] unless safe_mode?
+    tags = []
 
-    tags = Danbooru.config.safe_mode_restricted_tags.map { |tag| -AST.tag(tag) }
-    [AST.metatag("rating", "g"), *tags]
+    if safe_mode?
+      tags += Danbooru.config.safe_mode_restricted_tags.map { |tag| -AST.tag(tag) }
+      tags << AST.metatag("rating", "g")
+    end
+
+    # If sensitive tags are disabled, exclude posts with those tags from search results.
+    sensitive_tags = Danbooru.config.sensitive_tags
+    if sensitive_tags.present? && !current_user.enable_sensitive_tags?
+      tags += sensitive_tags.map { |tag| -AST.tag(tag) }
+    end
+
+    tags
   end
 
   concerning :CountMethods do

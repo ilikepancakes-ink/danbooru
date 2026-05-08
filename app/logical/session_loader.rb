@@ -24,11 +24,11 @@ class SessionLoader
 
   # Attempt to log a user in with the given username and password. Records a
   # login attempt event and returns the user if successful.
-  # @param name_or_email [String] The user's username or email address.
+  # @param name [String] The user's username.
   # @param password [String] the user's password
   # @return [User, nil] the user if the password was correct, otherwise nil
-  def login(name_or_email, password)
-    user = User.find_by_name_or_email(name_or_email)
+  def login(name, password)
+    user = User.find_by_name(name)
 
     if user.present? && user.authenticate_password(password)
       # Don't allow approvers or inactive accounts to login from proxies, unless the user has 2FA enabled.
@@ -41,13 +41,6 @@ class SessionLoader
         UserEvent.create_from_request!(user, :totp_login_pending_verification, request)
 
         user
-      # Require email verification for builders without 2FA enabled who are logging in from a new location.
-      elsif user.is_builder? && user.can_receive_email?(require_verified_email: false) && !user.authorized_ip?(ip_address)
-        user_event = UserEvent.create_from_request!(user, :login_pending_verification, request)
-        user.send_login_verification_email!(request, user_event)
-        errors.add(:base, "New login location detected. Check your email to continue")
-
-        nil
       else
         login_user(user, :login)
         user
@@ -62,9 +55,9 @@ class SessionLoader
     end
   end
 
-  # Authorize a new login location for a user who was sent a login verification email.
+  # Authorize a new login location for a user.
   #
-  # @param signed_login_event [String] The signed login event from the login verification email.
+  # @param signed_login_event [String] The signed login event.
   # @return [Boolean] True if the location was authorized, false otherwise.
   def authorize_login_event!(signed_login_event)
     user_event = UserEvent.find_signed(signed_login_event, purpose: :login_verification)
@@ -118,7 +111,7 @@ class SessionLoader
   end
 
   # Verify a user's password and 2FA code. Used to confirm a user's password before sensitive actions like adding API
-  # keys or changing the user's email.
+  # keys or changing the user's password.
   #
   # @param user [User] The user to reauthenticate.
   # @param password [String] The user's password.
@@ -163,7 +156,7 @@ class SessionLoader
 
   # Sets the current user. Runs on each HTTP request. The user is set based on
   # their API key, their session cookie, or the signed user id param (used when
-  # resetting a password from an magic email link)
+  # resetting a password from a signed link)
   #
   # Also performs post-load actions, including updating the user's last login
   # timestamp, their last used IP, their timezone, their database timeout,

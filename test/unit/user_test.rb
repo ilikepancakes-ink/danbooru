@@ -360,6 +360,45 @@ class UserTest < ActiveSupport::TestCase
         should_not allow_value((["x"] * 5_001).join(" ")).for(:blacklisted_tags)
       end
 
+      context "of blacklist_rules with sensitive tags disabled" do
+        setup do
+          Danbooru.config.stubs(:sensitive_tags).returns(%w[guro scat])
+        end
+
+        should "include sensitive tags as locked rules when enable_sensitive_tags is false" do
+          user = build(:user, blacklisted_tags: "blue_hair", enable_sensitive_tags: false)
+          assert_includes(user.blacklist_rules, "guro")
+          assert_includes(user.blacklist_rules, "scat")
+          assert_includes(user.blacklist_rules, "blue_hair")
+        end
+
+        should "include locked_blacklist_rules when sensitive tags are disabled" do
+          user = build(:user, blacklisted_tags: "blue_hair", enable_sensitive_tags: false)
+          assert_includes(user.locked_blacklist_rules, "guro")
+          assert_includes(user.locked_blacklist_rules, "scat")
+        end
+
+        should "not duplicate sensitive tags if already in blacklist" do
+          user = build(:user, blacklisted_tags: "guro\nscat\nblue_hair", enable_sensitive_tags: false)
+          assert_equal(1, user.blacklist_rules.count { |r| r == "guro" })
+          assert_equal(1, user.blacklist_rules.count { |r| r == "scat" })
+        end
+
+        should "not include sensitive tags when enable_sensitive_tags is true" do
+          user = build(:user, blacklisted_tags: "blue_hair", enable_sensitive_tags: true)
+          refute_includes(user.blacklist_rules, "guro")
+          refute_includes(user.blacklist_rules, "scat")
+          assert_empty(user.locked_blacklist_rules)
+        end
+
+        should "not include sensitive tags when sensitive_tags config is empty" do
+          Danbooru.config.stubs(:sensitive_tags).returns([])
+          user = build(:user, blacklisted_tags: "blue_hair", enable_sensitive_tags: false)
+          refute_includes(user.blacklist_rules, "guro")
+          assert_empty(user.locked_blacklist_rules)
+        end
+      end
+
       context "of favorite tags" do
         should normalize_attribute(:favorite_tags).from(" foo bar ").to("foo bar")
         should normalize_attribute(:favorite_tags).from(" \t\n ").to("")

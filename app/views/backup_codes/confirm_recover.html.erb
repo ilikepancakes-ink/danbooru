@@ -9,13 +9,13 @@
       <div class="prose">
         <p>Sending someone their backup code will let them bypass 2FA to login to their account and change their 2FA settings.</p>
 
-        <p>If they don't have access to their email, you can change their email address first.</p>
+
 
         <p>Don't send someone their backup code unless you've verified from their <%= link_to "login history", user_user_events_path(@user) %>
         that they are the real account owner.</p>
       </div>
 
-      <%= button_to "Send backup code", recover_user_backup_codes_path(user_id: @user.id), class: "button-primary h-fit", disabled: @user.backup_codes.blank? || @user.email_address.blank? %>
+      <%= button_to "Send backup code", recover_user_backup_codes_path(user_id: @user.id), class: "button-primary h-fit", disabled: @user.backup_codes.blank? %>
     </div>
   </div>
 </div>
